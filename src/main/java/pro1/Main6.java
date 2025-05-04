@@ -1,6 +1,10 @@
 package pro1;
 
+import com.google.gson.Gson;
 import pro1.apiDataModel.ActionsList;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Main6 {
 
@@ -10,10 +14,18 @@ public class Main6 {
 
     public static long idOfBestTeacher(String department, int year)
     {
-        // TODO 6.1 (navazuje na TODO 3):
-        //  - Stáhni seznam akcí na katedře (jiná data nepoužívat)
-        //  - Najdi učitele s nejvyšším "score" a vrať jeho ID
+        String json = Api.getActionsByDepartment(department, year);
+        ActionsList actionsList = new Gson().fromJson(json, ActionsList.class);
 
-        return 0;
+        return actionsList.actions.stream()
+                .filter(a -> a.teacherId != 0)
+                .collect(Collectors.groupingBy(
+                        a -> a.teacherId,
+                        Collectors.summingLong(a -> a.personsCount)
+                ))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(0L);
     }
 }
